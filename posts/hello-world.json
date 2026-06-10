@@ -2,5 +2,6 @@
   "title": "Hello World",
   "date": "2026-06-10",
   "excerpt": "The first post. Every project starts somewhere — this one starts here.",
-  "body": "Every project starts somewhere. This one starts with a blank terminal, a few lines of JavaScript, and a question: what's the simplest thing that could work?\n\nThe answer turned out to be about 60 lines of Node.js. No frameworks. No build tools. No dependencies. Just the standard library and a folder full of files.\n\nThere's something clarifying about stripping everything back to the metal. When you remove the abstractions, you can see the actual shape of the thing you're building. A web server is just a function that maps URLs to responses. A blog is just a list of text files served in order.\n\nThe rest is decoration."
+  "body": "Every project starts somewhere. This one starts with a blank terminal, a few lines of JavaScript, and a question: what's the simplest thing that could work?\n\nThe answer turned out to be about 60 lines of Node.js. No frameworks. No build tools. No dependencies. Just the standard library and a folder full of files.\n\nThere's something clarifying about stripping everything back to the metal. When you remove the abstractions, you can see the actual shape of the thing you're building. A web server is just a function that maps URLs to responses. A blog is just a list of text files served in order.\n\nThe rest is decoration.",
+  "font": "Inter"
 }

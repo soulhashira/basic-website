@@ -37,7 +37,10 @@ async function loadPost() {
     <div class="post-body" style="${fontStyle}">${bodyHtml}</div>
     <div class="post-actions">
       <a href="/" class="back-link">&larr; Back</a>
-      <button id="delete-btn" class="btn-delete">Delete</button>
+      <div class="post-actions-right">
+        <a href="/edit/${slug}" class="btn-edit">Edit</a>
+        <button id="delete-btn" class="btn-delete">Delete</button>
+      </div>
     </div>
   `;
 

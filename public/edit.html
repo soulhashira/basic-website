@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Post</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Lora:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">blog</a>
+  </header>
+
+  <main>
+    <h1 class="page-heading">Edit Post</h1>
+
+    <form id="edit-form">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" required>
+
+      <label for="excerpt">Excerpt</label>
+      <input type="text" id="excerpt" name="excerpt">
+
+      <label for="font">Font</label>
+      <div class="font-picker" id="font-picker">
+        <button type="button" class="font-option" data-font="Inter" style="font-family: 'Inter'">Inter</button>
+        <button type="button" class="font-option" data-font="Merriweather" style="font-family: 'Merriweather'">Merriweather</button>
+        <button type="button" class="font-option" data-font="JetBrains Mono" style="font-family: 'JetBrains Mono'">JetBrains Mono</button>
+        <button type="button" class="font-option" data-font="Lora" style="font-family: 'Lora'">Lora</button>
+        <button type="button" class="font-option" data-font="Space Grotesk" style="font-family: 'Space Grotesk'">Space Grotesk</button>
+      </div>
+
+      <label for="body">Body</label>
+      <textarea id="body" name="body" rows="14" required></textarea>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Save</button>
+        <a id="cancel-link" href="/" class="btn-cancel">Cancel</a>
+      </div>
+
+      <p id="form-error" class="form-error"></p>
+    </form>
+  </main>
+
+  <footer>
+    <span>&copy; 2026</span>
+  </footer>
+
+  <script>
+    const slug = window.location.pathname.split("/edit/")[1];
+    const form = document.getElementById("edit-form");
+    const errorEl = document.getElementById("form-error");
+    const fontPicker = document.getElementById("font-picker");
+    const bodyTextarea = document.getElementById("body");
+    const cancelLink = document.getElementById("cancel-link");
+    let selectedFont = "Inter";
+
+    // Point cancel back to the post, not home
+    cancelLink.href = "/post/" + slug;
+
+    // Load the existing post data into the form
+    async function loadPost() {
+      const res = await fetch(`/api/posts/${slug}`);
+      if (!res.ok) {
+        errorEl.textContent = "Post not found";
+        return;
+      }
+      const post = await res.json();
+
+      document.getElementById("title").value = post.title;
+      document.getElementById("excerpt").value = post.excerpt || "";
+      bodyTextarea.value = post.body;
+
+      // Select the current font
+      selectedFont = post.font || "Inter";
+      bodyTextarea.style.fontFamily = `"${selectedFont}", sans-serif`;
+      fontPicker.querySelectorAll(".font-option").forEach((btn) => {
+        if (btn.dataset.font === selectedFont) btn.classList.add("selected");
+      });
+
+      document.title = "Edit — " + post.title;
+    }
+
+    // Font picker
+    fontPicker.addEventListener("click", (e) => {
+      const btn = e.target.closest(".font-option");
+      if (!btn) return;
+
+      fontPicker.querySelectorAll(".font-option").forEach((b) => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedFont = btn.dataset.font;
+      bodyTextarea.style.fontFamily = `"${selectedFont}", sans-serif`;
+    });
+
+    // Submit edits
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorEl.textContent = "";
+
+      const title = document.getElementById("title").value.trim();
+      const excerpt = document.getElementById("excerpt").value.trim();
+      const body = bodyTextarea.value.trim();
+
+      const response = await fetch(`/api/posts/${slug}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, excerpt, body, font: selectedFont }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        errorEl.textContent = data.error;
+        return;
+      }
+
+      window.location.href = "/post/" + slug;
+    });
+
+    loadPost();
+  </script>
+</body>
+</html>

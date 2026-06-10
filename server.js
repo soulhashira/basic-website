@@ -5,6 +5,7 @@ const path = require("node:path");
 const PORT = 3000;
 const POSTS_DIR = path.join(__dirname, "posts");
 const PUBLIC_DIR = path.join(__dirname, "public");
+const ALLOWED_FONTS = ["Inter", "Merriweather", "JetBrains Mono", "Lora", "Space Grotesk"];
 
 const MIME_TYPES = {
   ".html": "text/html",
@@ -102,7 +103,6 @@ async function handleRequest(req, res) {
       return;
     }
 
-    const ALLOWED_FONTS = ["Inter", "Merriweather", "JetBrains Mono", "Lora", "Space Grotesk"];
     const font = ALLOWED_FONTS.includes(data.font) ? data.font : "Inter";
 
     const post = {
@@ -131,6 +131,36 @@ async function handleRequest(req, res) {
     return;
   }
 
+  if (postMatch && req.method === "PUT") {
+    const slug = postMatch[1];
+    const filePath = path.join(POSTS_DIR, `${slug}.json`);
+    if (!filePath.startsWith(POSTS_DIR) || !fs.existsSync(filePath)) {
+      sendJSON(res, 404, { error: "Post not found" });
+      return;
+    }
+
+    const body = await readBody(req);
+    let data;
+    try {
+      data = JSON.parse(body);
+    } catch {
+      sendJSON(res, 400, { error: "Invalid JSON" });
+      return;
+    }
+
+    // Read existing post, merge updates
+    const existing = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    if (data.title) existing.title = data.title;
+    if (data.excerpt) existing.excerpt = data.excerpt;
+    if (data.body) existing.body = data.body;
+    if (data.font) existing.font = ALLOWED_FONTS.includes(data.font) ? data.font : existing.font;
+
+    fs.writeFileSync(filePath, JSON.stringify(existing, null, 2));
+    existing.slug = slug;
+    sendJSON(res, 200, existing);
+    return;
+  }
+
   if (postMatch && req.method === "DELETE") {
     const slug = postMatch[1];
     const filePath = path.join(POSTS_DIR, `${slug}.json`);
@@ -140,6 +170,14 @@ async function handleRequest(req, res) {
     }
     fs.unlinkSync(filePath);
     sendJSON(res, 200, { deleted: slug });
+    return;
+  }
+
+  // Pages: /edit/some-slug → serve edit.html (client-side routing)
+  if (req.url.startsWith("/edit/")) {
+    const data = fs.readFileSync(path.join(PUBLIC_DIR, "edit.html"));
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
     return;
   }
 
