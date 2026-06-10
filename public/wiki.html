@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wikis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Lora:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">blog</a>
+    <nav class="header-nav">
+      <a href="/wiki" class="header-link active">Wikis</a>
+      <a href="/new" class="header-link">New Post</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="wiki-header">
+      <h1 class="page-heading">Wikis</h1>
+      <button id="new-wiki-btn" class="btn-secondary">New Wiki</button>
+    </div>
+
+    <form id="new-wiki-form" class="new-wiki-form hidden">
+      <input type="text" id="wiki-name" placeholder="Wiki name" required>
+      <input type="text" id="wiki-desc" placeholder="Short description (optional)">
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Create</button>
+        <button type="button" id="cancel-wiki" class="btn-cancel">Cancel</button>
+      </div>
+      <p id="wiki-error" class="form-error"></p>
+    </form>
+
+    <div id="wikis"></div>
+  </main>
+
+  <footer>
+    <span>&copy; 2026</span>
+  </footer>
+
+  <script>
+    const wikisContainer = document.getElementById("wikis");
+    const newWikiBtn = document.getElementById("new-wiki-btn");
+    const newWikiForm = document.getElementById("new-wiki-form");
+    const cancelWikiBtn = document.getElementById("cancel-wiki");
+    const wikiError = document.getElementById("wiki-error");
+
+    // Toggle the create form
+    newWikiBtn.addEventListener("click", () => {
+      newWikiForm.classList.toggle("hidden");
+      if (!newWikiForm.classList.contains("hidden")) {
+        document.getElementById("wiki-name").focus();
+      }
+    });
+    cancelWikiBtn.addEventListener("click", () => {
+      newWikiForm.classList.add("hidden");
+      wikiError.textContent = "";
+    });
+
+    // Create wiki
+    newWikiForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      wikiError.textContent = "";
+
+      const name = document.getElementById("wiki-name").value.trim();
+      const description = document.getElementById("wiki-desc").value.trim();
+
+      const res = await fetch("/api/wikis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, description }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        wikiError.textContent = data.error;
+        return;
+      }
+
+      newWikiForm.classList.add("hidden");
+      document.getElementById("wiki-name").value = "";
+      document.getElementById("wiki-desc").value = "";
+      loadWikis();
+    });
+
+    // Load and render wikis
+    async function loadWikis() {
+      const res = await fetch("/api/wikis");
+      const wikis = await res.json();
+
+      // Count posts per wiki
+      const postsRes = await fetch("/api/posts");
+      const posts = await postsRes.json();
+      const counts = {};
+      posts.forEach((p) => {
+        if (p.wiki) counts[p.wiki] = (counts[p.wiki] || 0) + 1;
+      });
+
+      if (wikis.length === 0) {
+        wikisContainer.innerHTML = '<p class="no-results">No wikis yet. Create one to get started.</p>';
+        return;
+      }
+
+      wikisContainer.innerHTML = wikis
+        .map((w) => `
+          <a href="/wiki/${w.slug}" class="wiki-card">
+            <div class="wiki-card-header">
+              <h2 class="wiki-card-name">${w.name}</h2>
+              <span class="wiki-card-count">${counts[w.slug] || 0} posts</span>
+            </div>
+            <p class="wiki-card-desc">${w.description || "No description."}</p>
+          </a>
+        `)
+        .join("");
+    }
+
+    loadWikis();
+  </script>
+</body>
+</html>

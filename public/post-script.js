@@ -31,8 +31,12 @@ async function loadPost() {
   const font = post.font || "Inter";
   const fontStyle = `font-family: "${font}", sans-serif;`;
 
+  const wikiTag = post.wiki
+    ? `<a href="/wiki/${post.wiki}" class="post-wiki-tag">${post.wiki}</a>`
+    : "";
+
   container.innerHTML = `
-    <div class="post-date">${formatDate(post.date)}</div>
+    <div class="post-meta">${formatDate(post.date)}${wikiTag ? " &middot; " + wikiTag : ""}</div>
     <h1 class="post-title">${post.title}</h1>
     <div class="post-body" style="${fontStyle}">${bodyHtml}</div>
     <div class="post-actions">

@@ -4,6 +4,7 @@ const path = require("node:path");
 
 const PORT = 3000;
 const POSTS_DIR = path.join(__dirname, "posts");
+const WIKIS_DIR = path.join(__dirname, "wikis");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const ALLOWED_FONTS = ["Inter", "Merriweather", "JetBrains Mono", "Lora", "Space Grotesk"];
 
@@ -45,6 +46,33 @@ function getPost(slug) {
   }
 }
 
+// ── API: list all wikis, sorted alphabetically ────────────
+function getAllWikis() {
+  const files = fs.readdirSync(WIKIS_DIR).filter((f) => f.endsWith(".json"));
+  const wikis = files.map((file) => {
+    const raw = fs.readFileSync(path.join(WIKIS_DIR, file), "utf-8");
+    const wiki = JSON.parse(raw);
+    wiki.slug = file.replace(".json", "");
+    return wiki;
+  });
+  wikis.sort((a, b) => a.name.localeCompare(b.name));
+  return wikis;
+}
+
+// ── API: get a single wiki by slug ────────────────────────
+function getWiki(slug) {
+  const filePath = path.join(WIKIS_DIR, `${slug}.json`);
+  if (!filePath.startsWith(WIKIS_DIR)) return null;
+  try {
+    const raw = fs.readFileSync(filePath, "utf-8");
+    const wiki = JSON.parse(raw);
+    wiki.slug = slug;
+    return wiki;
+  } catch {
+    return null;
+  }
+}
+
 // ── Helper: read the full request body ────────────────────
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -77,6 +105,10 @@ async function handleRequest(req, res) {
   // API: all posts (GET with optional ?q=search) or create post (POST)
   if (pathname === "/api/posts" && req.method === "GET") {
     let posts = getAllPosts();
+    const wikiFilter = parsedUrl.searchParams.get("wiki");
+    if (wikiFilter) {
+      posts = posts.filter((p) => p.wiki === wikiFilter);
+    }
     const query = parsedUrl.searchParams.get("q");
     if (query) {
       const q = query.toLowerCase();
@@ -126,6 +158,7 @@ async function handleRequest(req, res) {
       excerpt: data.excerpt || data.body.slice(0, 120) + "...",
       body: data.body,
       font: font,
+      wiki: data.wiki || null,
     };
 
     fs.writeFileSync(filePath, JSON.stringify(post, null, 2));
@@ -169,6 +202,7 @@ async function handleRequest(req, res) {
     if (data.excerpt) existing.excerpt = data.excerpt;
     if (data.body) existing.body = data.body;
     if (data.font) existing.font = ALLOWED_FONTS.includes(data.font) ? data.font : existing.font;
+    if ("wiki" in data) existing.wiki = data.wiki || null;
 
     fs.writeFileSync(filePath, JSON.stringify(existing, null, 2));
     existing.slug = slug;
@@ -185,6 +219,84 @@ async function handleRequest(req, res) {
     }
     fs.unlinkSync(filePath);
     sendJSON(res, 200, { deleted: slug });
+    return;
+  }
+
+  // ── Wiki API routes ──────────────────────────────────────
+
+  // API: all wikis (GET) or create wiki (POST)
+  if (pathname === "/api/wikis" && req.method === "GET") {
+    sendJSON(res, 200, getAllWikis());
+    return;
+  }
+
+  if (pathname === "/api/wikis" && req.method === "POST") {
+    const body = await readBody(req);
+    let data;
+    try {
+      data = JSON.parse(body);
+    } catch {
+      sendJSON(res, 400, { error: "Invalid JSON" });
+      return;
+    }
+
+    if (!data.name) {
+      sendJSON(res, 400, { error: "Name is required" });
+      return;
+    }
+
+    const slug = slugify(data.name);
+    if (!slug) {
+      sendJSON(res, 400, { error: "Name must contain at least one letter or number" });
+      return;
+    }
+
+    const filePath = path.join(WIKIS_DIR, `${slug}.json`);
+    if (fs.existsSync(filePath)) {
+      sendJSON(res, 409, { error: "A wiki with that name already exists" });
+      return;
+    }
+
+    const wiki = {
+      name: data.name,
+      description: data.description || "",
+      created: new Date().toISOString().split("T")[0],
+    };
+
+    fs.writeFileSync(filePath, JSON.stringify(wiki, null, 2));
+    wiki.slug = slug;
+    sendJSON(res, 201, wiki);
+    return;
+  }
+
+  // API: single wiki with its posts — GET /api/wikis/engineering
+  const wikiMatch = pathname.match(/^\/api\/wikis\/([a-z0-9-]+)$/);
+  if (wikiMatch && req.method === "GET") {
+    const wiki = getWiki(wikiMatch[1]);
+    if (!wiki) {
+      sendJSON(res, 404, { error: "Wiki not found" });
+      return;
+    }
+    // Attach posts that belong to this wiki
+    const allPosts = getAllPosts();
+    wiki.posts = allPosts.filter((p) => p.wiki === wikiMatch[1]);
+    sendJSON(res, 200, wiki);
+    return;
+  }
+
+  // Pages: /wiki → wiki index
+  if (pathname === "/wiki") {
+    const data = fs.readFileSync(path.join(PUBLIC_DIR, "wiki.html"));
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
+    return;
+  }
+
+  // Pages: /wiki/some-slug → single wiki view
+  if (pathname.startsWith("/wiki/")) {
+    const data = fs.readFileSync(path.join(PUBLIC_DIR, "wiki-view.html"));
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
     return;
   }
 

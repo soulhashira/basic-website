@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Lora:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <a href="/" class="logo">blog</a>
+    <nav class="header-nav">
+      <a href="/wiki" class="header-link">Wikis</a>
+      <a href="/new" class="header-link">New Post</a>
+    </nav>
+  </header>
+
+  <main>
+    <div id="wiki-content">
+      <div class="loading">Loading...</div>
+    </div>
+  </main>
+
+  <footer>
+    <span>&copy; 2026</span>
+  </footer>
+
+  <script>
+    const container = document.getElementById("wiki-content");
+    const slug = window.location.pathname.split("/wiki/")[1];
+
+    async function loadWiki() {
+      const res = await fetch(`/api/wikis/${slug}`);
+      if (!res.ok) {
+        container.innerHTML = `
+          <h1 class="page-heading">Wiki not found</h1>
+          <a href="/wiki" class="back-link">&larr; All Wikis</a>
+        `;
+        return;
+      }
+
+      const wiki = await res.json();
+      document.title = wiki.name + " — Wiki";
+
+      const postsHtml = wiki.posts.length === 0
+        ? '<p class="no-results">No posts in this wiki yet.</p>'
+        : wiki.posts.map((post) => `
+            <div class="post-item">
+              <div class="post-date">${formatDate(post.date)}</div>
+              <h2 class="post-title"><a href="/post/${post.slug}">${post.title}</a></h2>
+              <p class="post-excerpt">${post.excerpt}</p>
+            </div>
+          `).join("");
+
+      container.innerHTML = `
+        <div class="wiki-view-header">
+          <div>
+            <a href="/wiki" class="back-link">&larr; All Wikis</a>
+            <h1 class="page-heading" style="margin-top: 1rem;">${wiki.name}</h1>
+            <p class="wiki-view-desc">${wiki.description || ""}</p>
+          </div>
+          <a href="/new?wiki=${slug}" class="btn-secondary">Add Post</a>
+        </div>
+        <div class="wiki-posts">${postsHtml}</div>
+      `;
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr + "T00:00:00");
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    }
+
+    loadWiki();
+  </script>
+</body>
+</html>

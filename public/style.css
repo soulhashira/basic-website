@@ -63,6 +63,16 @@ header {
   color: var(--black);
 }
 
+.header-nav {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.header-link.active {
+  color: var(--black);
+}
+
 /* ── Main ────────────────────────────────────────────────── */
 
 main {
@@ -152,8 +162,25 @@ main {
 
 /* ── Single Post (article) ───────────────────────────────── */
 
-article .post-date {
+article .post-date,
+article .post-meta {
   margin-bottom: 0.75rem;
+}
+
+.post-meta {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--silver);
+}
+
+.post-wiki-tag {
+  color: var(--silver-dark);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.post-wiki-tag:hover {
+  color: var(--black);
 }
 
 article .post-title {
@@ -362,6 +389,143 @@ form textarea {
   color: #c00;
   font-size: 0.85rem;
   margin-top: 1rem;
+}
+
+/* ── Wiki ────────────────────────────────────────────────── */
+
+.wiki-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.wiki-header .page-heading {
+  margin-bottom: 0;
+}
+
+.btn-secondary {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--black);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.btn-secondary:hover {
+  border-color: var(--black);
+}
+
+.new-wiki-form {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.new-wiki-form input {
+  display: block;
+  width: 100%;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.9rem;
+  color: var(--black);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.5rem 0.65rem;
+  outline: none;
+  margin-bottom: 0.75rem;
+  transition: border-color 0.2s;
+}
+
+.new-wiki-form input:focus {
+  border-color: var(--silver);
+}
+
+.new-wiki-form .form-actions {
+  margin-top: 0.75rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.wiki-card {
+  display: block;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  text-decoration: none;
+  transition: border-color 0.2s;
+}
+
+.wiki-card:hover {
+  border-color: var(--silver);
+}
+
+.wiki-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.wiki-card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.wiki-card-count {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--silver);
+}
+
+.wiki-card-desc {
+  font-size: 0.85rem;
+  color: var(--silver-dark);
+  margin-top: 0.3rem;
+  line-height: 1.5;
+}
+
+.wiki-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.wiki-view-desc {
+  font-size: 0.9rem;
+  color: var(--silver-dark);
+  margin-top: 0.3rem;
+}
+
+form select {
+  display: block;
+  width: 100%;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.95rem;
+  color: var(--black);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  outline: none;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+
+form select:focus {
+  border-color: var(--silver);
 }
 
 /* ── Utilities ───────────────────────────────────────────── */
