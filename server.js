@@ -70,13 +70,28 @@ function sendJSON(res, status, data) {
 }
 
 async function handleRequest(req, res) {
-  // API: all posts (GET) or create post (POST)
-  if (req.url === "/api/posts" && req.method === "GET") {
-    sendJSON(res, 200, getAllPosts());
+  // Parse URL and query string
+  const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
+  const pathname = parsedUrl.pathname;
+
+  // API: all posts (GET with optional ?q=search) or create post (POST)
+  if (pathname === "/api/posts" && req.method === "GET") {
+    let posts = getAllPosts();
+    const query = parsedUrl.searchParams.get("q");
+    if (query) {
+      const q = query.toLowerCase();
+      posts = posts.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.excerpt.toLowerCase().includes(q) ||
+          p.body.toLowerCase().includes(q)
+      );
+    }
+    sendJSON(res, 200, posts);
     return;
   }
 
-  if (req.url === "/api/posts" && req.method === "POST") {
+  if (pathname === "/api/posts" && req.method === "POST") {
     const body = await readBody(req);
     let data;
     try {
@@ -119,8 +134,8 @@ async function handleRequest(req, res) {
     return;
   }
 
-  // API: single post — GET or DELETE /api/posts/hello-world
-  const postMatch = req.url.match(/^\/api\/posts\/([a-z0-9-]+)$/);
+  // API: single post — GET, PUT, or DELETE /api/posts/hello-world
+  const postMatch = pathname.match(/^\/api\/posts\/([a-z0-9-]+)$/);
   if (postMatch && req.method === "GET") {
     const post = getPost(postMatch[1]);
     if (!post) {
@@ -174,7 +189,7 @@ async function handleRequest(req, res) {
   }
 
   // Pages: /edit/some-slug → serve edit.html (client-side routing)
-  if (req.url.startsWith("/edit/")) {
+  if (pathname.startsWith("/edit/")) {
     const data = fs.readFileSync(path.join(PUBLIC_DIR, "edit.html"));
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(data);
@@ -182,7 +197,7 @@ async function handleRequest(req, res) {
   }
 
   // Pages: /new → serve new.html (compose page)
-  if (req.url === "/new") {
+  if (pathname === "/new") {
     const data = fs.readFileSync(path.join(PUBLIC_DIR, "new.html"));
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(data);
@@ -190,7 +205,7 @@ async function handleRequest(req, res) {
   }
 
   // Pages: /post/some-slug → serve post.html (client-side routing)
-  if (req.url.startsWith("/post/")) {
+  if (pathname.startsWith("/post/")) {
     const filePath = path.join(PUBLIC_DIR, "post.html");
     const data = fs.readFileSync(filePath);
     res.writeHead(200, { "Content-Type": "text/html" });
@@ -199,7 +214,7 @@ async function handleRequest(req, res) {
   }
 
   // Static files
-  let filePath = req.url === "/" ? "/index.html" : req.url;
+  let filePath = pathname === "/" ? "/index.html" : pathname;
   const fullPath = path.join(PUBLIC_DIR, filePath);
 
   if (!fullPath.startsWith(PUBLIC_DIR)) {

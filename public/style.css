@@ -73,6 +73,38 @@ main {
   padding: 3rem 2rem;
 }
 
+/* ── Search ──────────────────────────────────────────────── */
+
+.search-bar {
+  margin-bottom: 2rem;
+}
+
+.search-bar input {
+  width: 100%;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.95rem;
+  color: var(--black);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+  border-color: var(--silver);
+}
+
+.search-bar input::placeholder {
+  color: var(--silver-light);
+}
+
+.no-results {
+  color: var(--silver);
+  font-size: 0.9rem;
+}
+
 /* ── Post List (index) ───────────────────────────────────── */
 
 .post-item {

@@ -1,9 +1,17 @@
-// Home page — fetch all posts and render the list
+// Home page — fetch posts and render the list, with search
 
-async function loadPosts() {
-  const container = document.getElementById("posts");
-  const response = await fetch("/api/posts");
+const container = document.getElementById("posts");
+const searchInput = document.getElementById("search");
+
+async function loadPosts(query) {
+  const url = query ? `/api/posts?q=${encodeURIComponent(query)}` : "/api/posts";
+  const response = await fetch(url);
   const posts = await response.json();
+
+  if (posts.length === 0) {
+    container.innerHTML = `<p class="no-results">No posts found.</p>`;
+    return;
+  }
 
   container.innerHTML = posts
     .map(
@@ -26,5 +34,15 @@ function formatDate(dateStr) {
     day: "numeric",
   });
 }
+
+// Debounce: wait until the user stops typing for 250ms before searching.
+// Without this, every keystroke would fire an API request.
+let debounceTimer;
+searchInput.addEventListener("input", () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    loadPosts(searchInput.value.trim());
+  }, 250);
+});
 
 loadPosts();
