@@ -1,30 +1,30 @@
-// This file runs in the BROWSER, not in Node.js.
-// The browser downloaded it because index.html has <script src="/script.js">.
+// Home page — fetch all posts and render the list
 
-// ── Server Time (fetch from API) ──────────────────────────
-const fetchBtn = document.getElementById("fetch-time");
-const timeOutput = document.getElementById("time-output");
+async function loadPosts() {
+  const container = document.getElementById("posts");
+  const response = await fetch("/api/posts");
+  const posts = await response.json();
 
-fetchBtn.addEventListener("click", async () => {
-  // fetch() sends an HTTP GET to our Node.js server at /api/time.
-  // The server handles it in the "if (req.url === '/api/time')" branch.
-  const response = await fetch("/api/time");
-  const data = await response.json();
-  timeOutput.textContent = data.time;
-});
+  container.innerHTML = posts
+    .map(
+      (post) => `
+      <div class="post-item">
+        <div class="post-date">${formatDate(post.date)}</div>
+        <h2 class="post-title"><a href="/post/${post.slug}">${post.title}</a></h2>
+        <p class="post-excerpt">${post.excerpt}</p>
+      </div>
+    `
+    )
+    .join("");
+}
 
-// ── Counter (pure client-side) ────────────────────────────
-let count = 0;
-const countDisplay = document.getElementById("count");
-const incrementBtn = document.getElementById("increment");
-const decrementBtn = document.getElementById("decrement");
+function formatDate(dateStr) {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
-incrementBtn.addEventListener("click", () => {
-  count++;
-  countDisplay.textContent = count;
-});
-
-decrementBtn.addEventListener("click", () => {
-  count--;
-  countDisplay.textContent = count;
-});
+loadPosts();

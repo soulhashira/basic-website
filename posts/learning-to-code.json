@@ -1,0 +1,6 @@
+{
+  "title": "Learning to Code by Reading Code",
+  "date": "2026-06-08",
+  "excerpt": "Reverse engineering is underrated. Read the source, trace the flow, build the mental model.",
+  "body": "Most tutorials teach you to write code. They start with syntax, move to examples, and end with exercises. It works, but it's slow.\n\nThere's a faster path: read existing code and figure out what it does. Reverse engineering builds a different kind of understanding. Instead of memorizing patterns, you learn to recognize them. Instead of following instructions, you learn to ask questions.\n\nStart with something small. A 50-line server. A single-page app. Read every line. When you hit something you don't understand, look it up. When you think you understand it, change something and see if you're right.\n\nThe debugger is your best teacher. Set a breakpoint. Step through. Watch the variables change. The code tells you exactly what it's doing — you just have to learn to listen.\n\nThis is how experienced developers learn new codebases. They don't read the docs first. They read the code, form a hypothesis, and test it. The docs come later, to fill in the gaps."
+}

@@ -4,95 +4,165 @@
   box-sizing: border-box;
 }
 
+:root {
+  --black: #000000;
+  --white: #ffffff;
+  --silver: #999999;
+  --silver-light: #cccccc;
+  --silver-dark: #666666;
+  --border: #e0e0e0;
+  --bg-subtle: #fafafa;
+}
+
 body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #0a0a0a;
-  color: #e0e0e0;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: var(--white);
+  color: var(--black);
   min-height: 100vh;
   display: flex;
-  justify-content: center;
-  padding: 4rem 1rem;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* ── Header ──────────────────────────────────────────────── */
+
+header {
+  padding: 2rem 2rem 0;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.logo {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--silver);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.logo:hover {
+  color: var(--black);
+}
+
+/* ── Main ────────────────────────────────────────────────── */
 
 main {
-  max-width: 480px;
+  flex: 1;
+  max-width: 640px;
   width: 100%;
+  margin: 0 auto;
+  padding: 3rem 2rem;
 }
 
-h1 {
-  font-size: 2rem;
+/* ── Post List (index) ───────────────────────────────────── */
+
+.post-item {
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-item:first-child {
+  padding-top: 0;
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-date {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--silver);
+  letter-spacing: 0.02em;
+}
+
+.post-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--black);
+  margin: 0.4rem 0;
+  line-height: 1.3;
+}
+
+.post-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.post-title a:hover {
+  color: var(--silver-dark);
+}
+
+.post-excerpt {
+  font-size: 0.95rem;
+  color: var(--silver-dark);
+  line-height: 1.6;
+}
+
+/* ── Single Post (article) ───────────────────────────────── */
+
+article .post-date {
+  margin-bottom: 0.75rem;
+}
+
+article .post-title {
+  font-size: 1.75rem;
   font-weight: 700;
-  color: #ffffff;
-}
-
-.subtitle {
-  color: #888;
-  margin-top: 0.25rem;
+  line-height: 1.25;
   margin-bottom: 2rem;
 }
 
-.card {
-  background: #141414;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+article .post-body {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #1a1a1a;
 }
 
-.card h2 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #ccc;
-  margin-bottom: 0.5rem;
+article .post-body p {
+  margin-bottom: 1.5rem;
 }
 
-.card p {
+article .back-link {
+  display: inline-block;
+  margin-top: 3rem;
   font-size: 0.85rem;
-  color: #777;
-  margin-bottom: 1rem;
+  font-weight: 500;
+  color: var(--silver);
+  text-decoration: none;
+  transition: color 0.2s;
 }
 
-button {
-  background: #1a1a1a;
-  color: #e0e0e0;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
+article .back-link:hover {
+  color: var(--black);
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+
+footer {
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  font-size: 0.8rem;
+  color: var(--silver-light);
+}
+
+/* ── Utilities ───────────────────────────────────────────── */
+
+.loading {
+  color: var(--silver);
   font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.15s;
 }
 
-button:hover {
-  background: #252525;
-}
+/* ── Responsive ──────────────────────────────────────────── */
 
-button:active {
-  background: #333;
-}
-
-pre {
-  background: #0d0d0d;
-  border: 1px solid #222;
-  border-radius: 4px;
-  padding: 0.75rem;
-  margin-top: 0.75rem;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-  font-size: 0.85rem;
-  color: #7ec699;
-  overflow-x: auto;
-}
-
-.counter-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-#count {
-  font-size: 1.5rem;
-  font-weight: 700;
-  font-family: "JetBrains Mono", monospace;
-  min-width: 3ch;
-  text-align: center;
+@media (max-width: 480px) {
+  header { padding: 1.5rem 1.25rem 0; }
+  main { padding: 2rem 1.25rem; }
+  footer { padding: 1.5rem 1.25rem; }
+  article .post-title { font-size: 1.4rem; }
 }

@@ -1,0 +1,6 @@
+{
+  "title": "Building in Public",
+  "date": "2026-06-09",
+  "excerpt": "Why showing your work matters more than polishing it.",
+  "body": "There's a temptation to wait until something is finished before showing it to anyone. To polish every edge, handle every error, anticipate every question.\n\nBut finished is a myth. Software is never done — it's just abandoned at various levels of completeness. The interesting part isn't the final product. It's the decisions you made along the way. Why this architecture? Why not that library? What broke, and how did you fix it?\n\nBuilding in public means letting people see the rough edges. It means committing code that works but isn't pretty. It means writing about what you learned before you've fully processed it.\n\nThe vulnerability is the point. When you show unfinished work, you invite collaboration instead of critique. People don't want to tear down something that's clearly in progress — they want to help build it."
+}
