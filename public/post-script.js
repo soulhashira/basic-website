@@ -27,10 +27,14 @@ async function loadPost() {
     .map((p) => `<p>${p}</p>`)
     .join("");
 
+  // Apply the post's chosen font to the body text
+  const font = post.font || "Inter";
+  const fontStyle = `font-family: "${font}", sans-serif;`;
+
   container.innerHTML = `
     <div class="post-date">${formatDate(post.date)}</div>
     <h1 class="post-title">${post.title}</h1>
-    <div class="post-body">${bodyHtml}</div>
+    <div class="post-body" style="${fontStyle}">${bodyHtml}</div>
     <div class="post-actions">
       <a href="/" class="back-link">&larr; Back</a>
       <button id="delete-btn" class="btn-delete">Delete</button>

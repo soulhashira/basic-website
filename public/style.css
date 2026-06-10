@@ -215,6 +215,35 @@ form label:first-of-type {
   color: var(--silver-light);
 }
 
+.font-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.font-option {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--silver-dark);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.font-option:hover {
+  border-color: var(--silver);
+  color: var(--black);
+}
+
+.font-option.selected {
+  border-color: var(--black);
+  color: var(--black);
+  font-weight: 500;
+}
+
 form input,
 form textarea {
   display: block;

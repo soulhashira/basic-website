@@ -102,11 +102,15 @@ async function handleRequest(req, res) {
       return;
     }
 
+    const ALLOWED_FONTS = ["Inter", "Merriweather", "JetBrains Mono", "Lora", "Space Grotesk"];
+    const font = ALLOWED_FONTS.includes(data.font) ? data.font : "Inter";
+
     const post = {
       title: data.title,
       date: new Date().toISOString().split("T")[0],
       excerpt: data.excerpt || data.body.slice(0, 120) + "...",
       body: data.body,
+      font: font,
     };
 
     fs.writeFileSync(filePath, JSON.stringify(post, null, 2));

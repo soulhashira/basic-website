@@ -6,7 +6,7 @@
   <title>New Post</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Lora:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -23,6 +23,15 @@
 
       <label for="excerpt">Excerpt <span class="optional">(optional)</span></label>
       <input type="text" id="excerpt" name="excerpt" placeholder="Short summary">
+
+      <label for="font">Font</label>
+      <div class="font-picker" id="font-picker">
+        <button type="button" class="font-option selected" data-font="Inter" style="font-family: 'Inter'">Inter</button>
+        <button type="button" class="font-option" data-font="Merriweather" style="font-family: 'Merriweather'">Merriweather</button>
+        <button type="button" class="font-option" data-font="JetBrains Mono" style="font-family: 'JetBrains Mono'">JetBrains Mono</button>
+        <button type="button" class="font-option" data-font="Lora" style="font-family: 'Lora'">Lora</button>
+        <button type="button" class="font-option" data-font="Space Grotesk" style="font-family: 'Space Grotesk'">Space Grotesk</button>
+      </div>
 
       <label for="body">Body</label>
       <textarea id="body" name="body" rows="14" placeholder="Write your post..." required></textarea>
@@ -43,6 +52,22 @@
   <script>
     const form = document.getElementById("post-form");
     const errorEl = document.getElementById("form-error");
+    const fontPicker = document.getElementById("font-picker");
+    const bodyTextarea = document.getElementById("body");
+    let selectedFont = "Inter";
+
+    // Font picker — clicking a button selects that font
+    fontPicker.addEventListener("click", (e) => {
+      const btn = e.target.closest(".font-option");
+      if (!btn) return;
+
+      fontPicker.querySelectorAll(".font-option").forEach((b) => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedFont = btn.dataset.font;
+
+      // Live preview: apply the font to the textarea
+      bodyTextarea.style.fontFamily = `"${selectedFont}", sans-serif`;
+    });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -50,12 +75,12 @@
 
       const title = document.getElementById("title").value.trim();
       const excerpt = document.getElementById("excerpt").value.trim();
-      const body = document.getElementById("body").value.trim();
+      const body = bodyTextarea.value.trim();
 
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, excerpt: excerpt || undefined, body }),
+        body: JSON.stringify({ title, excerpt: excerpt || undefined, body, font: selectedFont }),
       });
 
       const data = await response.json();
@@ -65,7 +90,6 @@
         return;
       }
 
-      // Redirect to the new post
       window.location.href = "/post/" + data.slug;
     });
   </script>
