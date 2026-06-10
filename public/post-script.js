@@ -31,8 +31,20 @@ async function loadPost() {
     <div class="post-date">${formatDate(post.date)}</div>
     <h1 class="post-title">${post.title}</h1>
     <div class="post-body">${bodyHtml}</div>
-    <a href="/" class="back-link">&larr; Back</a>
+    <div class="post-actions">
+      <a href="/" class="back-link">&larr; Back</a>
+      <button id="delete-btn" class="btn-delete">Delete</button>
+    </div>
   `;
+
+  document.getElementById("delete-btn").addEventListener("click", async () => {
+    if (!confirm("Delete this post?")) return;
+
+    const res = await fetch(`/api/posts/${slug}`, { method: "DELETE" });
+    if (res.ok) {
+      window.location.href = "/";
+    }
+  });
 }
 
 function formatDate(dateStr) {

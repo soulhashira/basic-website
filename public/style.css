@@ -32,6 +32,21 @@ header {
   max-width: 640px;
   width: 100%;
   margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-link {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--silver);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.header-link:hover {
+  color: var(--black);
 }
 
 .logo {
@@ -126,9 +141,16 @@ article .post-body p {
   margin-bottom: 1.5rem;
 }
 
-article .back-link {
-  display: inline-block;
+.post-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+article .back-link {
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--silver);
@@ -140,6 +162,23 @@ article .back-link:hover {
   color: var(--black);
 }
 
+.btn-delete {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--silver);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.btn-delete:hover {
+  color: #c00;
+  border-color: #c00;
+}
+
 /* ── Footer ──────────────────────────────────────────────── */
 
 footer {
@@ -149,6 +188,97 @@ footer {
   padding: 2rem;
   font-size: 0.8rem;
   color: var(--silver-light);
+}
+
+/* ── Form (new post) ─────────────────────────────────────── */
+
+.page-heading {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+form label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--silver-dark);
+  margin-bottom: 0.4rem;
+  margin-top: 1.25rem;
+}
+
+form label:first-of-type {
+  margin-top: 0;
+}
+
+.optional {
+  color: var(--silver-light);
+}
+
+form input,
+form textarea {
+  display: block;
+  width: 100%;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.95rem;
+  color: var(--black);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+form input:focus,
+form textarea:focus {
+  border-color: var(--silver);
+}
+
+form textarea {
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-primary {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--white);
+  background: var(--black);
+  border: 1px solid var(--black);
+  border-radius: 4px;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.8;
+}
+
+.btn-cancel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--silver);
+  text-decoration: none;
+}
+
+.btn-cancel:hover {
+  color: var(--black);
+}
+
+.form-error {
+  color: #c00;
+  font-size: 0.85rem;
+  margin-top: 1rem;
 }
 
 /* ── Utilities ───────────────────────────────────────────── */

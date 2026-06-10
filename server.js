@@ -44,26 +44,106 @@ function getPost(slug) {
   }
 }
 
-function handleRequest(req, res) {
-  // API: all posts
-  if (req.url === "/api/posts") {
-    const posts = getAllPosts();
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(posts));
+// ── Helper: read the full request body ────────────────────
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => resolve(Buffer.concat(chunks).toString()));
+    req.on("error", reject);
+  });
+}
+
+// ── Helper: turn a title into a URL-safe slug ─────────────
+function slugify(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// ── Helper: send JSON response ────────────────────────────
+function sendJSON(res, status, data) {
+  res.writeHead(status, { "Content-Type": "application/json" });
+  res.end(JSON.stringify(data));
+}
+
+async function handleRequest(req, res) {
+  // API: all posts (GET) or create post (POST)
+  if (req.url === "/api/posts" && req.method === "GET") {
+    sendJSON(res, 200, getAllPosts());
     return;
   }
 
-  // API: single post — /api/posts/hello-world
-  const postMatch = req.url.match(/^\/api\/posts\/([a-z0-9-]+)$/);
-  if (postMatch) {
-    const post = getPost(postMatch[1]);
-    if (!post) {
-      res.writeHead(404, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "Post not found" }));
+  if (req.url === "/api/posts" && req.method === "POST") {
+    const body = await readBody(req);
+    let data;
+    try {
+      data = JSON.parse(body);
+    } catch {
+      sendJSON(res, 400, { error: "Invalid JSON" });
       return;
     }
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(post));
+
+    if (!data.title || !data.body) {
+      sendJSON(res, 400, { error: "Title and body are required" });
+      return;
+    }
+
+    const slug = slugify(data.title);
+    if (!slug) {
+      sendJSON(res, 400, { error: "Title must contain at least one letter or number" });
+      return;
+    }
+
+    const filePath = path.join(POSTS_DIR, `${slug}.json`);
+    if (fs.existsSync(filePath)) {
+      sendJSON(res, 409, { error: "A post with that title already exists" });
+      return;
+    }
+
+    const post = {
+      title: data.title,
+      date: new Date().toISOString().split("T")[0],
+      excerpt: data.excerpt || data.body.slice(0, 120) + "...",
+      body: data.body,
+    };
+
+    fs.writeFileSync(filePath, JSON.stringify(post, null, 2));
+    post.slug = slug;
+    sendJSON(res, 201, post);
+    return;
+  }
+
+  // API: single post — GET or DELETE /api/posts/hello-world
+  const postMatch = req.url.match(/^\/api\/posts\/([a-z0-9-]+)$/);
+  if (postMatch && req.method === "GET") {
+    const post = getPost(postMatch[1]);
+    if (!post) {
+      sendJSON(res, 404, { error: "Post not found" });
+      return;
+    }
+    sendJSON(res, 200, post);
+    return;
+  }
+
+  if (postMatch && req.method === "DELETE") {
+    const slug = postMatch[1];
+    const filePath = path.join(POSTS_DIR, `${slug}.json`);
+    if (!filePath.startsWith(POSTS_DIR) || !fs.existsSync(filePath)) {
+      sendJSON(res, 404, { error: "Post not found" });
+      return;
+    }
+    fs.unlinkSync(filePath);
+    sendJSON(res, 200, { deleted: slug });
+    return;
+  }
+
+  // Pages: /new → serve new.html (compose page)
+  if (req.url === "/new") {
+    const data = fs.readFileSync(path.join(PUBLIC_DIR, "new.html"));
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
     return;
   }
 
@@ -100,7 +180,15 @@ function handleRequest(req, res) {
   });
 }
 
-const server = http.createServer(handleRequest);
+// http.createServer doesn't understand async functions natively.
+// We wrap it so that promise rejections don't crash silently.
+const server = http.createServer((req, res) => {
+  handleRequest(req, res).catch((err) => {
+    console.error(err);
+    res.writeHead(500, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ error: "Internal server error" }));
+  });
+});
 
 server.listen(PORT, () => {
   console.log(`Blog running at http://localhost:${PORT}`);
