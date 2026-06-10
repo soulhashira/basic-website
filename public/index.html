@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basic Website</title>
+  <!-- This <link> tells the browser to request /style.css from our server -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <h1>basic-website</h1>
+    <p class="subtitle">Raw Node.js &mdash; no frameworks, no magic</p>
+
+    <section class="card">
+      <h2>Server Time</h2>
+      <p>Click the button to fetch the current time from the Node.js server.</p>
+      <button id="fetch-time">Get Server Time</button>
+      <pre id="time-output">Waiting...</pre>
+    </section>
+
+    <section class="card">
+      <h2>Counter</h2>
+      <p>Client-side JavaScript — no server involved.</p>
+      <div class="counter-row">
+        <button id="decrement">&minus;</button>
+        <span id="count">0</span>
+        <button id="increment">+</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- This <script> tells the browser to request /script.js from our server -->
+  <script src="/script.js"></script>
+</body>
+</html>
