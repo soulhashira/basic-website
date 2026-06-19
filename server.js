@@ -91,6 +91,35 @@ function slugify(title) {
     .replace(/^-|-$/g, "");
 }
 
+// ── Helper: escape a string for safe insertion into HTML ──
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ── Helper: build the per-post SEO <head> block ───────────
+function buildPostSeo(post, origin) {
+  const title = escapeHtml(post.title);
+  const desc = escapeHtml(post.excerpt || "");
+  const url = `${origin}/post/${post.slug}`;
+  return [
+    `<title>${title}</title>`,
+    `<meta name="description" content="${desc}">`,
+    `<link rel="canonical" href="${url}">`,
+    `<meta property="og:type" content="article">`,
+    `<meta property="og:title" content="${title}">`,
+    `<meta property="og:description" content="${desc}">`,
+    `<meta property="og:url" content="${url}">`,
+    `<meta property="article:published_time" content="${escapeHtml(post.date)}">`,
+    `<meta name="twitter:card" content="summary">`,
+    `<meta name="twitter:title" content="${title}">`,
+    `<meta name="twitter:description" content="${desc}">`,
+  ].join("\n  ");
+}
+
 // ── Helper: send JSON response ────────────────────────────
 function sendJSON(res, status, data) {
   res.writeHead(status, { "Content-Type": "application/json" });
@@ -316,12 +345,27 @@ async function handleRequest(req, res) {
     return;
   }
 
-  // Pages: /post/some-slug → serve post.html (client-side routing)
-  if (pathname.startsWith("/post/")) {
-    const filePath = path.join(PUBLIC_DIR, "post.html");
-    const data = fs.readFileSync(filePath);
+  // Pages: /about → serve about.html (identity / what-this-is page)
+  if (pathname === "/about") {
+    const data = fs.readFileSync(path.join(PUBLIC_DIR, "about.html"));
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(data);
+    return;
+  }
+
+  // Pages: /post/some-slug → serve post.html (client-side routing).
+  // Inject real SEO tags server-side so crawlers and link previews
+  // see the post's title/description without running the page's JS.
+  if (pathname.startsWith("/post/")) {
+    let html = fs.readFileSync(path.join(PUBLIC_DIR, "post.html"), "utf-8");
+    const slug = pathname.slice("/post/".length);
+    const post = getPost(slug);
+    if (post) {
+      const origin = `http://${req.headers.host || `localhost:${PORT}`}`;
+      html = html.replace("<title>Post</title>", buildPostSeo(post, origin));
+    }
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(html);
     return;
   }
 
