@@ -1,0 +1,4 @@
+# Build output — compiled artifacts go to public/sim/
+*.html
+*.js
+*.wasm
