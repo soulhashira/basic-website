@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How a Camera Sees — Yonker Films</title>
+  <meta name="description" content="From photons hitting glass to pixels on a timeline — the complete data journey of a single frame.">
+  <meta property="og:title" content="How a Camera Sees — Yonker Films">
+  <meta property="og:description" content="The complete data journey from lens to timeline.">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* ── Explainer layout overrides ─────────────────────────── */
+    body.explainer-page main.explainer {
+      max-width: 920px;
+    }
+    body.explainer-page header,
+    body.explainer-page footer {
+      max-width: 920px;
+    }
+
+    /* ── Variables ──────────────────────────────────────────── */
+    .explainer {
+      --ex-dark: #0f1117;
+      --ex-dark-2: #1a1c25;
+      --ex-dark-border: #2a2d3a;
+      --ex-amber: #f59e0b;
+      --ex-blue: #3b82f6;
+      --ex-green: #10b981;
+      --ex-purple: #8b5cf6;
+      --ex-teal: #14b8a6;
+      --ex-light: #e2e8f0;
+      --ex-dim: #8892a4;
+    }
+
+    /* ── Hero ───────────────────────────────────────────────── */
+    .ex-hero {
+      margin-bottom: 1rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .ex-hero h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+    }
+    .ex-hero-sub {
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: var(--silver-dark);
+    }
+    .ex-hero-hint {
+      font-size: 0.8rem;
+      color: var(--silver);
+      margin-top: 0.75rem;
+      font-family: "JetBrains Mono", monospace;
+    }
+
+    /* ── Table of contents ─────────────────────────────────── */
+    .ex-toc {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+      padding: 1rem 0;
+    }
+    .ex-toc a {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--silver);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .ex-toc a:hover { color: var(--black); }
+
+    /* ── Act sections ──────────────────────────────────────── */
+    .ex-act {
+      margin-bottom: 4rem;
+    }
+    .ex-act h2 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--silver);
+      margin-bottom: 0.75rem;
+    }
+    .ex-prose {
+      max-width: 640px;
+    }
+    .ex-prose p {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--silver-dark);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Diagram container (dark canvas) ───────────────────── */
+    .ex-diagram-wrap {
+      background: var(--ex-dark);
+      border-radius: 8px;
+      border: 1px solid var(--ex-dark-border);
+      padding: 1.5rem;
+      margin-top: 0.5rem;
+    }
+
+    /* ── Pipeline track ────────────────────────────────────── */
+    .ex-pipeline {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      padding: 0.5rem 0;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--ex-dark-border) transparent;
+    }
+    .ex-pipeline::-webkit-scrollbar { height: 4px; }
+    .ex-pipeline::-webkit-scrollbar-track { background: transparent; }
+    .ex-pipeline::-webkit-scrollbar-thumb {
+      background: var(--ex-dark-border);
+      border-radius: 2px;
+    }
+
+    /* ── Stage cards ───────────────────────────────────────── */
+    .ex-stage {
+      flex: 0 0 auto;
+      background: var(--ex-dark-2);
+      border: 1px solid var(--ex-dark-border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      cursor: pointer;
+      text-align: left;
+      min-width: 100px;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      color: var(--ex-light);
+    }
+    .ex-stage:hover {
+      border-color: var(--ex-dim);
+    }
+    .ex-stage.active {
+      border-color: var(--stage-color, var(--ex-blue));
+      box-shadow: 0 0 16px -4px var(--stage-color, var(--ex-blue));
+    }
+    .ex-stage-num {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.65rem;
+      color: var(--stage-color, var(--ex-blue));
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .ex-stage-name {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .ex-stage-tag {
+      display: block;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.65rem;
+      color: var(--ex-dim);
+      margin-top: 3px;
+    }
+
+    /* ── Flow arrows ───────────────────────────────────────── */
+    .ex-flow-arrow {
+      flex: 0 0 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .ex-flow-line {
+      flex: 1;
+      height: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ex-flow-line::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 200%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--flow-color, #2a2d3a) 0px,
+        var(--flow-color, #2a2d3a) 4px,
+        transparent 4px,
+        transparent 8px
+      );
+      animation: ex-dash 0.6s linear infinite;
+    }
+    .ex-flow-head {
+      color: var(--flow-color, #2a2d3a);
+      font-size: 12px;
+      line-height: 1;
+      margin-left: -2px;
+    }
+    @keyframes ex-dash {
+      to { transform: translateX(50%); }
+    }
+
+    /* ── Info panel ─────────────────────────────────────────── */
+    .ex-info-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.35s ease;
+    }
+    .ex-info-panel.visible {
+      grid-template-rows: 1fr;
+    }
+    .ex-info-inner {
+      overflow: hidden;
+    }
+    .ex-info-content {
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--ex-dark-border);
+      margin-top: 1rem;
+    }
+    .ex-info-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .ex-info-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ex-light);
+    }
+    .ex-info-subtitle {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.7rem;
+      color: var(--stage-color, var(--ex-blue));
+      letter-spacing: 0.03em;
+    }
+    .ex-info-body {
+      font-size: 0.9rem;
+      line-height: 1.75;
+      color: var(--ex-dim);
+      max-width: 640px;
+    }
+    .ex-info-specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 1rem;
+    }
+    .ex-spec {
+      background: var(--ex-dark);
+      border: 1px solid var(--ex-dark-border);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.7rem;
+      color: var(--ex-dim);
+    }
+
+    /* ── Springboard cards ─────────────────────────────────── */
+    .ex-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .ex-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.25rem;
+      transition: border-color 0.2s;
+    }
+    .ex-card:hover {
+      border-color: var(--silver);
+    }
+    .ex-card-label {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--silver);
+      margin-bottom: 0.5rem;
+    }
+    .ex-card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .ex-card p {
+      font-size: 0.85rem;
+      line-height: 1.55;
+      color: var(--silver-dark);
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .ex-hero h1 { font-size: 1.5rem; }
+      .ex-diagram-wrap { padding: 1rem; }
+      .ex-pipeline {
+        flex-direction: column;
+        align-items: stretch;
+        overflow-x: visible;
+      }
+      .ex-stage {
+        min-width: unset;
+        width: 100%;
+      }
+      .ex-flow-arrow {
+        flex: 0 0 24px;
+        width: 24px;
+        height: 24px;
+        align-self: center;
+      }
+      .ex-flow-arrow .ex-flow-line { display: none; }
+      .ex-flow-arrow .ex-flow-head {
+        font-size: 16px;
+        transform: rotate(90deg);
+        margin-left: 0;
+      }
+      .ex-toc { gap: 1rem; }
+    }
+  </style>
+</head>
+<body class="explainer-page">
+  <header>
+    <a href="/" class="logo">Yonker Films</a>
+    <nav class="header-nav">
+      <a href="/explainers/camera-pipeline" class="header-link active">Explainers</a>
+      <a href="/wiki" class="header-link">Wikis</a>
+      <a href="/about" class="header-link">About</a>
+    </nav>
+  </header>
+
+  <main class="explainer">
+    <section class="ex-hero">
+      <h1>How a Camera Sees</h1>
+      <p class="ex-hero-sub">
+        From photons hitting glass to pixels on a timeline &mdash;
+        the complete data journey of a single frame.
+      </p>
+      <p class="ex-hero-hint">Click any stage in the diagrams below to explore.</p>
+    </section>
+
+    <nav class="ex-toc">
+      <a href="#camera">1 &mdash; Inside the Camera</a>
+      <a href="#transfer">2 &mdash; Card to Computer</a>
+      <a href="#nle">3 &mdash; Inside the Edit</a>
+      <a href="#ai">4 &mdash; Where AI Enters</a>
+    </nav>
+
+    <!-- ── Act 1: Inside the Camera ──────────────────────── -->
+    <section class="ex-act" id="camera">
+      <h2>1. Inside the Camera</h2>
+      <div class="ex-prose">
+        <p>
+          A modern cinema camera is a computer with a lens mount. Light enters
+          one end; a compressed data file exits the other. Between those two
+          points, the signal transforms from analog photons into digital video
+          through seven distinct stages.
+        </p>
+      </div>
+      <div class="ex-diagram-wrap">
+        <div class="ex-pipeline" id="camera-pipeline"></div>
+        <div class="ex-info-panel" id="camera-info">
+          <div class="ex-info-inner"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Act 2: Card to Computer ───────────────────────── -->
+    <section class="ex-act" id="transfer">
+      <h2>2. Card to Computer</h2>
+      <div class="ex-prose">
+        <p>
+          The card leaves the camera and enters a chain of custody. Every byte
+          must survive the transfer intact &mdash; this is the one point in the
+          pipeline where data loss is permanent and unrecoverable.
+        </p>
+      </div>
+      <div class="ex-diagram-wrap">
+        <div class="ex-pipeline" id="transfer-pipeline"></div>
+        <div class="ex-info-panel" id="transfer-info">
+          <div class="ex-info-inner"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Act 3: Inside the Edit ────────────────────────── -->
+    <section class="ex-act" id="nle">
+      <h2>3. Inside the Edit</h2>
+      <div class="ex-prose">
+        <p>
+          When you import footage into an NLE, the software reverses much of
+          what the camera did &mdash; unpacking containers, decoding compressed
+          frames, and reconstructing images in GPU memory for real-time playback.
+        </p>
+      </div>
+      <div class="ex-diagram-wrap">
+        <div class="ex-pipeline" id="nle-pipeline"></div>
+        <div class="ex-info-panel" id="nle-info">
+          <div class="ex-info-inner"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Springboard: Where AI Enters ──────────────────── -->
+    <section class="ex-act" id="ai">
+      <h2>4. Where AI Enters the Picture</h2>
+      <div class="ex-prose">
+        <p>
+          Every stage above &mdash; from sensor debayering to codec compression
+          to timeline rendering &mdash; is a computational process. Each one is
+          a candidate for AI acceleration. Here is where the future is heading.
+        </p>
+      </div>
+      <div class="ex-cards">
+        <div class="ex-card">
+          <div class="ex-card-label">Coming soon</div>
+          <h3>Neural Noise Reduction</h3>
+          <p>Trained models that understand image content, not just pixel statistics. They distinguish detail from noise in ways traditional algorithms cannot.</p>
+        </div>
+        <div class="ex-card">
+          <div class="ex-card-label">Coming soon</div>
+          <h3>AI Color Science</h3>
+          <p>Scene-aware grading that recognizes faces, sky, and foliage &mdash; applying local adjustments at machine speed.</p>
+        </div>
+        <div class="ex-card">
+          <div class="ex-card-label">Coming soon</div>
+          <h3>Smart Proxies</h3>
+          <p>AI-generated editorial proxies that preserve color metadata, enabling grading decisions on lightweight files.</p>
+        </div>
+        <div class="ex-card">
+          <div class="ex-card-label">Coming soon</div>
+          <h3>Automated Assembly</h3>
+          <p>Scene detection, slate reading, and rough-cut assembly from raw dailies using computer vision.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>&copy; 2026</span>
+  </footer>
+
+  <script>
+    // ── Stage data ──────────────────────────────────────────
+    const STAGES = {
+      camera: [
+        {
+          id: 'lens', name: 'Lens', tag: 'optical', color: '#f59e0b',
+          title: 'The Lens', subtitle: 'Pure Optics',
+          body: 'Light enters through precisely shaped glass elements. The aperture iris controls exposure, the focus ring sets the sharp plane. Everything here is analog \u2014 photons bending through glass. No electricity, no data, just physics.',
+          specs: ['Elements: 10\u201320 glass pieces', 'Aperture: f/1.2 \u2013 f/22', 'Mounts: EF, RF, E, L-mount']
+        },
+        {
+          id: 'sensor', name: 'Sensor', tag: 'analog', color: '#f59e0b',
+          title: 'The Sensor', subtitle: 'Photons \u2192 Electrons',
+          body: 'A CMOS sensor is a grid of millions of photosites \u2014 tiny light wells, each 3\u20138 micrometers across. Each one converts photons into electrical charge: more light means more charge means a brighter value. A Bayer color filter sits over the grid, giving each photosite only one color \u2014 red, green, or blue (two greens per red and blue, because human vision is most sensitive to green). The output is a mosaic of single-color brightness readings. Not an image yet \u2014 just voltages.',
+          specs: ['Full Frame: 36\u00d724mm', 'Super 35: 25\u00d714mm', 'Photosites: 6\u201360M+', 'Pattern: RGGB Bayer']
+        },
+        {
+          id: 'adc', name: 'ADC', tag: 'conversion', color: '#3b82f6',
+          title: 'Analog-to-Digital Converter', subtitle: 'Voltage \u2192 Numbers',
+          body: 'The ADC reads each photosite\u2019s tiny voltage and maps it to a number. Bit depth determines precision: 10-bit distinguishes 1,024 brightness levels, 12-bit gives 4,096, 14-bit captures 16,384. The difference matters most in shadows and highlights, where too few levels cause visible banding. This is the exact moment the physical world becomes data.',
+          specs: ['10-bit: 1,024 levels', '12-bit: 4,096 levels', '14-bit: 16,384 levels']
+        },
+        {
+          id: 'isp', name: 'ISP', tag: 'processing', color: '#3b82f6',
+          title: 'Image Signal Processor', subtitle: 'Mosaic \u2192 Pixels',
+          body: 'The ISP does the heaviest computation in the camera. Debayering interpolates the Bayer mosaic into full-color pixels \u2014 each pixel gets all three channels by examining its neighbors. The ISP also handles noise reduction, white balance, and the manufacturer\u2019s color science \u2014 that characteristic look that makes Canon skin tones different from Sony\u2019s. Shooting RAW skips most of this: debayering and color science get deferred to your editing software.',
+          specs: ['Debayer, NR, WB, color science', 'RAW: minimal processing', '30\u2013120+ fps throughput']
+        },
+        {
+          id: 'codec', name: 'Codec', tag: 'compression', color: '#3b82f6',
+          title: 'The Codec', subtitle: 'What Gets Kept',
+          body: 'The most consequential decision the camera makes. RAW preserves nearly everything at 2:1\u20136:1 compression. ProRes compresses each frame independently \u2014 fast to decode, easy to edit. H.264/H.265 use Long-GOP: one full keyframe, then only the differences for the next 15\u201330 frames. Incredibly space-efficient, but harder to edit \u2014 every frame must be reconstructed from its nearest keyframe. What the codec discards is gone permanently.',
+          specs: ['RAW: ~2\u20134 GB/min', 'ProRes 422 HQ: ~1.5 GB/min', 'H.265: ~200\u2013400 MB/min']
+        },
+        {
+          id: 'buffer', name: 'Buffer', tag: 'cache', color: '#3b82f6',
+          title: 'The Buffer', subtitle: 'Speed Matching',
+          body: 'High-speed SDRAM that absorbs the gap between the fast codec output and the slower memory card. The codec produces data in bursts; the card writes at a fixed maximum rate. The buffer smooths this mismatch. When it fills up, recording stops or frames drop \u2014 which is why camera specs list maximum burst length. The bottleneck is almost always the card, not the processor.',
+          specs: ['Typical: 1\u20138 GB SDRAM', 'Function: FIFO write cache', 'Overflow: recording halts']
+        },
+        {
+          id: 'card', name: 'Card', tag: 'storage', color: '#10b981',
+          title: 'Memory Card', subtitle: 'Portable SSD',
+          body: 'A miniaturized solid-state drive in a standardized form factor. CFexpress Type B sustains ~1,500 MB/s writes \u2014 enough for 8K RAW. SD UHS-II tops out around 250 MB/s \u2014 fine for H.265, too slow for high-bitrate RAW. The filesystem is exFAT (supports files over 4GB, cross-platform). Internally the card runs its own wear leveling and error correction \u2014 the same flash translation layer as a desktop SSD.',
+          specs: ['CFexpress B: ~1,500 MB/s', 'SD UHS-II: ~250 MB/s', 'Filesystem: exFAT']
+        }
+      ],
+      transfer: [
+        {
+          id: 'reader', name: 'Reader', tag: 'interface', color: '#10b981',
+          title: 'Card Reader', subtitle: 'Physical Interface',
+          body: 'The card slots into a reader connected via USB or Thunderbolt. The reader\u2019s bus speed is often the bottleneck \u2014 a USB 3.0 reader caps at ~500 MB/s even with a 1,500 MB/s CFexpress card. Thunderbolt 3/4 readers remove this constraint. The computer mounts the card as a standard volume, just like an external drive.',
+          specs: ['USB 3.0: ~500 MB/s', 'USB 3.2: ~1,000 MB/s', 'TB3/4: ~2,800 MB/s']
+        },
+        {
+          id: 'verify', name: 'Verify', tag: 'checksum', color: '#14b8a6',
+          title: 'Offload & Verify', subtitle: 'Checksummed Copy',
+          body: 'Professional offload tools (Hedge, ShotPut Pro, or rsync + xxhsum) copy every byte from card to drive, then verify the copy by computing a checksum on both source and destination. If the hashes match, no bits were lost. The card is never reformatted until verification passes. This is the single most important step in the pipeline \u2014 lose data here and nothing recovers it.',
+          specs: ['Checksum: XXH64 / MD5', 'Verify before reformat', 'Tools: Hedge, ShotPut, rsync']
+        },
+        {
+          id: 'structure', name: 'Structure', tag: 'filesystem', color: '#14b8a6',
+          title: 'File Structure', subtitle: 'What\u2019s on the Card',
+          body: 'Camera cards follow the DCF standard: a DCIM/ root folder containing manufacturer-specific subfolders (100CANON/, CLIP/, etc.). Each clip is typically a media file plus sidecar files \u2014 .xmp for metadata, .wav for dual-system audio, .thm for thumbnails. Naming conventions encode clip number and sometimes date, but vary between manufacturers. Understanding this structure matters when recovering files from a corrupted card.',
+          specs: ['Standard: DCF / DCIM', 'Sidecar: .xmp, .wav, .thm', 'Naming: manufacturer-specific']
+        },
+        {
+          id: 'archive', name: 'Archive', tag: 'backup', color: '#14b8a6',
+          title: 'Archive Storage', subtitle: '3-2-1 Rule',
+          body: 'Industry standard: three copies of everything, on two different media types, with one copy offsite. Typical setup \u2014 working SSD, backup spinning drive, cloud or LTO tape offsite. RAID is not backup: it protects against drive failure, not accidental deletion or corruption. The archive is the source of truth for the entire post-production pipeline.',
+          specs: ['3 copies minimum', '2 media types', '1 offsite copy', 'RAID \u2260 backup']
+        }
+      ],
+      nle: [
+        {
+          id: 'import', name: 'Import', tag: 'indexing', color: '#14b8a6',
+          title: 'Import & Index', subtitle: 'Building the Database',
+          body: 'The NLE scans your media folder and reads every file\u2019s header \u2014 not the video data, just the metadata envelope. It catalogs codec, resolution, frame rate, timecode, duration, and audio channels. This index goes into a project database (Resolve\u2019s .db, Premiere\u2019s .prproj cache). 500 clips and 20 hours of footage can be indexed in seconds because only headers are read.',
+          specs: ['Reads: container headers', 'Catalogs: codec, res, fps, TC', 'Speed: seconds for 500+ clips']
+        },
+        {
+          id: 'demux', name: 'Demux', tag: 'container', color: '#3b82f6',
+          title: 'Demuxer', subtitle: 'Opening the Envelope',
+          body: 'A media file is a container (.mov, .mp4, .mxf) wrapping one or more tracks: video, audio, timecode, metadata. The demuxer separates these tracks so each can be processed independently. The container format has nothing to do with quality \u2014 a .mov can hold H.264, ProRes, or RAW. Confusing container with codec is the single most common mistake in post-production.',
+          specs: ['Containers: .mov, .mp4, .mxf', 'Tracks: video, audio, TC, metadata', 'Container \u2260 codec']
+        },
+        {
+          id: 'decode', name: 'Decode', tag: 'codec', color: '#3b82f6',
+          title: 'Decoder', subtitle: 'Compressed \u2192 Frames',
+          body: 'The decoder reverses the codec\u2019s work, reconstructing full frames from compressed data. ProRes decodes fast \u2014 each frame is independent. H.265 Long-GOP is expensive: find the nearest keyframe, apply every delta forward. Hardware decoding (GPU / dedicated ASIC) accelerates this. RAW is decoded and debayered in the NLE itself \u2014 this is where the camera\u2019s deferred ISP work finally happens, and why RAW editing demands serious GPU power.',
+          specs: ['ProRes: fast, per-frame', 'H.265: keyframe + deltas', 'RAW: decode + debayer', 'HW accel: GPU / ASIC']
+        },
+        {
+          id: 'gpu', name: 'GPU', tag: 'processing', color: '#8b5cf6',
+          title: 'Frame Buffer', subtitle: 'GPU Processing',
+          body: 'Decoded frames live in GPU VRAM. The NLE applies color grading, LUTs, effects, and composites multiple layers in real-time. The GPU processes the image as a texture \u2014 resizing, color math, and transforms run in parallel across thousands of shader cores. A single 4K frame at 16-bit float takes ~100MB of VRAM. A five-layer timeline with color grading is processing ~500MB per frame at playback speed.',
+          specs: ['4K 16-bit frame: ~100 MB', 'Ops: color, transform, composite', 'Parallel: GPU shader cores']
+        },
+        {
+          id: 'timeline', name: 'Timeline', tag: 'assembly', color: '#8b5cf6',
+          title: 'Timeline & Output', subtitle: 'Assembly \u2192 Display',
+          body: 'The timeline is the NLE\u2019s core abstraction: a time-indexed sequence of references to source media, each with in/out points, layer position, and applied effects. Nothing is duplicated \u2014 the timeline points back to the original files. When you export, the entire pipeline runs in reverse: read, decode, process, composite, then re-encode through your chosen export codec. A 10-minute export compresses hours of pipeline work into a single output file.',
+          specs: ['Non-destructive references', 'Export: full re-encode', 'Final codec: your choice']
+        }
+      ]
+    };
+
+    // Flow arrow colors between stages (color of the preceding stage's output)
+    const FLOW_COLORS = {
+      camera:   ['#f59e0b','#f59e0b','#3b82f6','#3b82f6','#3b82f6','#10b981'],
+      transfer: ['#14b8a6','#14b8a6','#14b8a6'],
+      nle:      ['#3b82f6','#3b82f6','#8b5cf6','#8b5cf6']
+    };
+
+    // ── Build pipelines ─────────────────────────────────────
+    function buildPipeline(containerId, pipelineKey) {
+      const container = document.getElementById(containerId);
+      const stages = STAGES[pipelineKey];
+      const flowColors = FLOW_COLORS[pipelineKey];
+
+      stages.forEach((stage, i) => {
+        if (i > 0) {
+          const arrow = document.createElement('div');
+          arrow.className = 'ex-flow-arrow';
+          const color = flowColors[i - 1];
+          arrow.innerHTML =
+            '<div class="ex-flow-line" style="--flow-color:' + color + '"></div>' +
+            '<span class="ex-flow-head" style="color:' + color + '">\u25b8</span>';
+          container.appendChild(arrow);
+        }
+        const btn = document.createElement('button');
+        btn.className = 'ex-stage';
+        btn.dataset.stage = stage.id;
+        btn.dataset.pipeline = pipelineKey;
+        btn.style.setProperty('--stage-color', stage.color);
+        btn.innerHTML =
+          '<span class="ex-stage-num">' + String(i + 1).padStart(2, '0') + '</span>' +
+          '<span class="ex-stage-name">' + stage.name + '</span>' +
+          '<span class="ex-stage-tag">' + stage.tag + '</span>';
+        container.appendChild(btn);
+      });
+    }
+
+    // ── Render info panel ───────────────────────────────────
+    function showInfo(pipelineKey, stageId) {
+      const stage = STAGES[pipelineKey].find(s => s.id === stageId);
+      if (!stage) return;
+
+      const panelId = pipelineKey + '-info';
+      const panel = document.getElementById(panelId);
+      const inner = panel.querySelector('.ex-info-inner');
+
+      const specsHtml = stage.specs
+        .map(s => '<span class="ex-spec">' + s + '</span>')
+        .join('');
+
+      inner.innerHTML =
+        '<div class="ex-info-content" style="--stage-color:' + stage.color + '">' +
+          '<div class="ex-info-header">' +
+            '<span class="ex-info-title">' + stage.title + '</span>' +
+            '<span class="ex-info-subtitle">' + stage.subtitle + '</span>' +
+          '</div>' +
+          '<p class="ex-info-body">' + stage.body + '</p>' +
+          '<div class="ex-info-specs">' + specsHtml + '</div>' +
+        '</div>';
+
+      panel.classList.add('visible');
+    }
+
+    function hideInfo(pipelineKey) {
+      const panel = document.getElementById(pipelineKey + '-info');
+      panel.classList.remove('visible');
+    }
+
+    // ── Event handling ──────────────────────────────────────
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest('.ex-stage');
+      if (!btn) return;
+
+      const pipeline = btn.dataset.pipeline;
+      const stageId = btn.dataset.stage;
+      const container = btn.closest('.ex-pipeline');
+
+      // Toggle off if already active
+      if (btn.classList.contains('active')) {
+        btn.classList.remove('active');
+        hideInfo(pipeline);
+        return;
+      }
+
+      // Deactivate siblings
+      container.querySelectorAll('.ex-stage').forEach(s => s.classList.remove('active'));
+      btn.classList.add('active');
+      showInfo(pipeline, stageId);
+    });
+
+    // ── Init: build all pipelines, auto-select first stage ──
+    buildPipeline('camera-pipeline', 'camera');
+    buildPipeline('transfer-pipeline', 'transfer');
+    buildPipeline('nle-pipeline', 'nle');
+
+    // Auto-open first stage of camera pipeline
+    const firstStage = document.querySelector('#camera-pipeline .ex-stage');
+    if (firstStage) {
+      firstStage.classList.add('active');
+      showInfo('camera', firstStage.dataset.stage);
+    }
+  </script>
+</body>
+</html>

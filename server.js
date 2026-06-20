@@ -329,6 +329,26 @@ async function handleRequest(req, res) {
     return;
   }
 
+  // Explainer pages: /explainers/:slug → serve public/explainers/:slug.html
+  const explainerMatch = pathname.match(/^\/explainers\/([a-z0-9-]+)$/);
+  if (explainerMatch) {
+    const explainerPath = path.join(PUBLIC_DIR, "explainers", `${explainerMatch[1]}.html`);
+    if (!explainerPath.startsWith(PUBLIC_DIR)) {
+      res.writeHead(403);
+      res.end("Forbidden");
+      return;
+    }
+    try {
+      const data = fs.readFileSync(explainerPath);
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(data);
+    } catch {
+      res.writeHead(404, { "Content-Type": "text/html" });
+      res.end("<h1>404</h1>");
+    }
+    return;
+  }
+
   // Pages: /edit/some-slug → serve edit.html (client-side routing)
   if (pathname.startsWith("/edit/")) {
     const data = fs.readFileSync(path.join(PUBLIC_DIR, "edit.html"));
