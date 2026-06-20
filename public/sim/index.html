@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSLR Simulator — Yonker Films</title>
+  <meta name="description" content="Interactive DSLR camera simulator. Click parts to learn what they do, adjust aperture, shutter speed, and ISO in real time.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body.sim-page {
+      background: #0a0a0f;
+      color: #e2e8f0;
+    }
+    body.sim-page header {
+      max-width: 1020px;
+    }
+    body.sim-page .logo,
+    body.sim-page .header-link {
+      color: #666;
+    }
+    body.sim-page .logo:hover,
+    body.sim-page .header-link:hover {
+      color: #e2e8f0;
+    }
+    body.sim-page footer {
+      max-width: 1020px;
+      color: #444;
+    }
+    .sim-main {
+      max-width: 1020px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 2rem 1rem;
+      flex: 1;
+    }
+    .sim-hero {
+      margin-bottom: 1.5rem;
+    }
+    .sim-hero h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .sim-hero p {
+      font-size: 0.9rem;
+      color: #8892a4;
+      line-height: 1.6;
+    }
+    .sim-canvas-wrap {
+      position: relative;
+      background: #0f1117;
+      border: 1px solid #2a2d3a;
+      border-radius: 8px;
+      overflow: hidden;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .sim-canvas-wrap canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: auto;
+    }
+    .sim-loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.8rem;
+      color: #8892a4;
+    }
+    .sim-loading.hidden { display: none; }
+    .sim-controls-hint {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      color: #555;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .sim-back {
+      display: inline-block;
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: #666;
+      text-decoration: none;
+    }
+    .sim-back:hover { color: #e2e8f0; }
+    @media (max-width: 640px) {
+      .sim-main { padding: 1.25rem; }
+      .sim-hero h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body class="sim-page">
+  <header>
+    <a href="/" class="logo">Yonker Films</a>
+    <nav class="header-nav">
+      <a href="/explainers/camera-pipeline" class="header-link">Explainers</a>
+      <a href="/wiki" class="header-link">Wikis</a>
+      <a href="/about" class="header-link">About</a>
+    </nav>
+  </header>
+
+  <div class="sim-main">
+    <div class="sim-hero">
+      <h1>DSLR Camera Simulator</h1>
+      <p>
+        Click any part of the camera to learn what it does. Adjust aperture,
+        shutter speed, and ISO with the sliders or keyboard &mdash; watch the
+        viewfinder respond in real time.
+      </p>
+    </div>
+
+    <div class="sim-canvas-wrap">
+      <div class="sim-loading" id="loading">Loading simulator&hellip;</div>
+      <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+
+    <div class="sim-controls-hint">
+      Click sliders to adjust &nbsp;|&nbsp; A/D or arrow keys to select &nbsp;|&nbsp; W/S or arrow keys to change value
+    </div>
+
+    <a href="/explainers/camera-pipeline" class="sim-back">&larr; Back to How a Camera Sees</a>
+  </div>
+
+  <footer>
+    <span>&copy; 2026</span>
+  </footer>
+
+  <script>
+    var Module = {
+      print: function(text) { console.log(text); },
+      canvas: document.getElementById('canvas'),
+      onRuntimeInitialized: function() {
+        document.getElementById('loading').classList.add('hidden');
+      }
+    };
+  </script>
+  <script src="/sim/camera.js" async></script>
+</body>
+</html>

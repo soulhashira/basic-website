@@ -17,6 +17,7 @@ const MIME_TYPES = {
   ".jpg": "image/jpeg",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
+  ".wasm": "application/wasm",
 };
 
 // ── API: list all posts, sorted newest-first ──────────────
@@ -324,6 +325,14 @@ async function handleRequest(req, res) {
   // Pages: /wiki/some-slug → single wiki view
   if (pathname.startsWith("/wiki/")) {
     const data = fs.readFileSync(path.join(PUBLIC_DIR, "wiki-view.html"));
+    res.writeHead(200, { "Content-Type": "text/html" });
+    res.end(data);
+    return;
+  }
+
+  // Simulator page: /sim → serve public/sim/index.html
+  if (pathname === "/sim") {
+    const data = fs.readFileSync(path.join(PUBLIC_DIR, "sim", "index.html"));
     res.writeHead(200, { "Content-Type": "text/html" });
     res.end(data);
     return;
