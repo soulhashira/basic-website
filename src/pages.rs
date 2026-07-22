@@ -6,13 +6,15 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use axum::http::header::{CONTENT_TYPE, HOST};
 use axum::http::{HeaderMap, StatusCode, Uri};
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{IntoResponse, Response};
 
 use crate::store;
 use crate::AppState;
 
+/// Node emitted a bare `text/html` (no charset) on every page; axum's
+/// `Html` wrapper would append `; charset=utf-8`, so headers are set by hand.
 pub fn html_404() -> Response {
-    (StatusCode::NOT_FOUND, Html("<h1>404</h1>")).into_response()
+    (StatusCode::NOT_FOUND, [(CONTENT_TYPE, "text/html")], "<h1>404</h1>").into_response()
 }
 
 /// Serve a fixed HTML file from `public/`. Missing file = 500, like the
@@ -100,22 +102,31 @@ pub async fn post_page(
     Path(slug): Path<String>,
     headers: HeaderMap,
 ) -> Response {
+    post_page_impl(&st, &slug, &headers).await
+}
+
+/// `/post/` with no slug: Node's startsWith match served post.html untouched.
+pub async fn post_page_bare(State(st): State<Arc<AppState>>, headers: HeaderMap) -> Response {
+    post_page_impl(&st, "", &headers).await
+}
+
+async fn post_page_impl(st: &AppState, slug: &str, headers: &HeaderMap) -> Response {
     let Ok(mut html) =
         tokio::fs::read_to_string(st.public_dir.join("post.html")).await
     else {
         return StatusCode::INTERNAL_SERVER_ERROR.into_response();
     };
 
-    if let Some(post) = store::load(&st.posts_dir, &slug).await {
+    if let Some(post) = store::load(&st.posts_dir, slug).await {
         let default_host = format!("localhost:{}", st.port);
         let host = headers
             .get(HOST)
             .and_then(|v| v.to_str().ok())
             .unwrap_or(&default_host);
         let origin = format!("http://{host}");
-        html = html.replace("<title>Post</title>", &build_post_seo(&post, &slug, &origin));
+        html = html.replace("<title>Post</title>", &build_post_seo(&post, slug, &origin));
     }
-    Html(html).into_response()
+    ([(CONTENT_TYPE, "text/html")], html).into_response()
 }
 
 // ── Static fallback ──────────────────────────────────────────────────────

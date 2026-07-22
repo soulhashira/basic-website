@@ -39,9 +39,53 @@ pub async fn read_json(path: &Path) -> Option<Value> {
 }
 
 /// Write a document pretty-printed, like `JSON.stringify(data, null, 2)`.
+///
+/// Writes to a hidden temp file in the same directory, then renames over the
+/// target. The rename is atomic, so concurrent readers never observe a
+/// truncated or half-written document (Node got this for free by blocking
+/// its only thread across the sync write).
 pub async fn write_json(path: &Path, value: &Value) -> std::io::Result<()> {
     let raw = serde_json::to_string_pretty(value).expect("value is always serializable");
-    tokio::fs::write(path, raw).await
+    let tmp = tmp_path(path);
+    tokio::fs::write(&tmp, raw).await?;
+    tokio::fs::rename(&tmp, path).await
+}
+
+/// `posts/foo.json` → `posts/.foo.json.tmp` — same filesystem (rename must
+/// not cross devices) and invisible to `load_all`'s `*.json` filter.
+fn tmp_path(path: &Path) -> std::path::PathBuf {
+    let mut name = std::ffi::OsString::from(".");
+    name.push(path.file_name().unwrap_or_default());
+    name.push(".tmp");
+    path.with_file_name(name)
+}
+
+pub enum CreateError {
+    Exists,
+    Io,
+}
+
+/// Create a new document, failing if one already exists. The existence check
+/// is `O_CREAT|O_EXCL` at the syscall level — two concurrent creates for the
+/// same slug cannot both succeed, unlike a `try_exists` + `write` pair.
+pub async fn create_json(path: &Path, value: &Value) -> Result<(), CreateError> {
+    match tokio::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+        .await
+    {
+        Ok(_) => {} // slot reserved; content lands via atomic rename below
+        Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+            return Err(CreateError::Exists);
+        }
+        Err(_) => return Err(CreateError::Io),
+    }
+    if let Err(_) = write_json(path, value).await {
+        let _ = tokio::fs::remove_file(path).await; // release the reservation
+        return Err(CreateError::Io);
+    }
+    Ok(())
 }
 
 /// Load one record by slug, injecting `slug` into the returned object.

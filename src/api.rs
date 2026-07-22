@@ -78,9 +78,6 @@ pub async fn create_post(State(st): State<Arc<AppState>>, body: String) -> Respo
     }
 
     let file = st.posts_dir.join(format!("{slug}.json"));
-    if tokio::fs::try_exists(&file).await.unwrap_or(false) {
-        return err(StatusCode::CONFLICT, "A post with that title already exists");
-    }
 
     let font = match nonempty(&data, "font") {
         Some(f) if ALLOWED_FONTS.contains(&f) => f,
@@ -108,8 +105,14 @@ pub async fn create_post(State(st): State<Arc<AppState>>, body: String) -> Respo
         "wiki": wiki,
     });
 
-    if store::write_json(&file, &post).await.is_err() {
-        return err(StatusCode::INTERNAL_SERVER_ERROR, "Failed to save post");
+    match store::create_json(&file, &post).await {
+        Err(store::CreateError::Exists) => {
+            return err(StatusCode::CONFLICT, "A post with that title already exists");
+        }
+        Err(store::CreateError::Io) => {
+            return err(StatusCode::INTERNAL_SERVER_ERROR, "Failed to save post");
+        }
+        Ok(()) => {}
     }
 
     post.as_object_mut()
@@ -136,6 +139,9 @@ pub async fn update_post(
     if !store::valid_slug(&slug) {
         return html_404();
     }
+    // Serialize read-modify-write cycles. Node's sync fs pair on a single
+    // thread could never interleave; a multi-threaded runtime happily will.
+    let _guard = st.write_lock.lock().await;
     let file = st.posts_dir.join(format!("{slug}.json"));
     let Some(mut existing) = store::read_json(&file).await else {
         return err(StatusCode::NOT_FOUND, "Post not found");
@@ -179,6 +185,7 @@ pub async fn delete_post(State(st): State<Arc<AppState>>, Path(slug): Path<Strin
     if !store::valid_slug(&slug) {
         return html_404();
     }
+    let _guard = st.write_lock.lock().await;
     let file = st.posts_dir.join(format!("{slug}.json"));
     if tokio::fs::remove_file(&file).await.is_err() {
         return err(StatusCode::NOT_FOUND, "Post not found");
@@ -209,9 +216,6 @@ pub async fn create_wiki(State(st): State<Arc<AppState>>, body: String) -> Respo
     }
 
     let file = st.wikis_dir.join(format!("{slug}.json"));
-    if tokio::fs::try_exists(&file).await.unwrap_or(false) {
-        return err(StatusCode::CONFLICT, "A wiki with that name already exists");
-    }
 
     let mut wiki = json!({
         "name": name,
@@ -219,8 +223,14 @@ pub async fn create_wiki(State(st): State<Arc<AppState>>, body: String) -> Respo
         "created": today(),
     });
 
-    if store::write_json(&file, &wiki).await.is_err() {
-        return err(StatusCode::INTERNAL_SERVER_ERROR, "Failed to save wiki");
+    match store::create_json(&file, &wiki).await {
+        Err(store::CreateError::Exists) => {
+            return err(StatusCode::CONFLICT, "A wiki with that name already exists");
+        }
+        Err(store::CreateError::Io) => {
+            return err(StatusCode::INTERNAL_SERVER_ERROR, "Failed to save wiki");
+        }
+        Ok(()) => {}
     }
 
     wiki.as_object_mut()
